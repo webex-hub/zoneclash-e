@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ZoneClash</title>
+    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;500;600;700&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        :root {
+            --neon: #00f3ff;
+            --neon-glow: 0 0 10px rgba(0, 243, 255, 0.6);
+            --pink: #ff003c;
+            --pink-glow: 0 0 10px rgba(255, 0, 60, 0.6);
+            --gold: #ffd700;
+            --bg: #020205;
+            --card-bg: rgba(20, 20, 25, 0.7);
+            --text: #fff;
+            --yt: #ff0000;
+            --tt: #ffffff;
+            --fb: #1877F2;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; font-family: 'Rajdhani', sans-serif; -webkit-tap-highlight-color:transparent; }
+        body { 
+            background-color: var(--bg); 
+            color: var(--text); 
+            height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden; 
+            background-image: 
+                linear-gradient(rgba(0, 243, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 243, 255, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+
+        .hidden { display: none !important; }
+        header, #main, nav, #auth, #verify-screen { display: none; }
+
+        /* SLIDER */
+        .slider-container { width: 100%; height: 160px; margin-bottom: 20px; position: relative; overflow: hidden; border-radius: 8px; border: 1px solid #333; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        .slider-wrapper { display: flex; width: 100%; height: 100%; transition: transform 0.5s ease-in-out; }
+        .slide { min-width: 100%; height: 100%; cursor: pointer; background-size: cover; background-position: center; }
+        .slider-dots { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; }
+        .dot { width: 8px; height: 8px; background: rgba(255,255,255,0.3); border-radius: 50%; transition: 0.3s; }
+        .dot.active { background: var(--neon); width: 20px; border-radius: 10px; box-shadow: var(--neon-glow); }
+        .slider-arrow { position: absolute; top: 50%; transform: translateY(-50%); width: 30px; height: 30px; background: rgba(0,0,0,0.6); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 50%; z-index: 10; border: 1px solid #444; transition: 0.2s; }
+        .slider-arrow.left { left: 10px; } .slider-arrow.right { right: 10px; }
+
+        /* POPUP */
+        #app-popup { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 5000; display: none; justify-content: center; align-items: center; backdrop-filter: blur(8px); }
+        .ff-pop-card { width: 85%; max-width: 320px; background: #111; border: 2px solid var(--neon); position: relative; border-radius: 10px; overflow: hidden; box-shadow: var(--neon-glow); }
+        .ff-pop-img { width: 100%; height: 180px; object-fit: cover; border-bottom: 1px solid #333; }
+        .ff-pop-content { padding: 15px; text-align: center; }
+        .ff-pop-close { position: absolute; top: 10px; right: 10px; color: #fff; background: rgba(0,0,0,0.5); width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; z-index: 10; border: 1px solid #555; }
+        .ff-pop-check { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #888; margin-top: 10px; justify-content: center; }
+
+        /* CATEGORY */
+        .cat-bar { display: flex; gap: 10px; overflow-x: auto; padding: 10px 0; margin-bottom: 15px; scrollbar-width: none; }
+        .cat-item { padding: 8px 18px; background: rgba(255,255,255,0.05); border: 1px solid #333; border-radius: 20px; font-size: 14px; white-space: nowrap; cursor: pointer; transition: 0.3s; color: #aaa; font-weight: 600; text-transform: uppercase; }
+        .cat-item.active { background: var(--neon); color: #000; border-color: var(--neon); box-shadow: var(--neon-glow); }
+
+        /* BUTTONS */
+        .btn { width: 100%; padding: 12px; border: none; outline: none; cursor: pointer; font-family: 'Teko', sans-serif; font-size: 22px; letter-spacing: 1px; clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px); text-transform: uppercase; margin-top: 10px; transition: all 0.2s ease; position: relative; font-weight: 600; }
+        .btn:active { transform: scale(0.96); }
+        .btn-neon { background: linear-gradient(135deg, var(--neon), #0088ff); color: #000; box-shadow: var(--neon-glow); border: 1px solid var(--neon); }
+        .btn-red { background: linear-gradient(135deg, var(--pink), #800020); color: #fff; box-shadow: var(--pink-glow); border: 1px solid var(--pink); }
+        .btn-outline { background: rgba(0, 243, 255, 0.05); border: 1px solid var(--neon); color: var(--neon); text-shadow: 0 0 5px var(--neon); }
+        .btn-dis { background: #1a1a1a; color: #555; border: 1px solid #333; cursor: not-allowed; clip-path: none; border-radius: 4px; pointer-events: none; }
+        .btn-sm { width: auto; padding: 4px 12px; font-size: 14px; clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px); border-radius: 0; background: var(--neon); color: black; font-weight: bold; border: none; cursor: pointer; }
+
+        input, select, textarea { width: 100%; padding: 12px; margin-bottom: 12px; background: rgba(0,0,0,0.5); border: 1px solid #333; color: white; outline: none; border-radius: 2px; font-size: 16px; transition: 0.3s; }
+        input:focus, textarea:focus { border-color: var(--neon); box-shadow: 0 0 8px rgba(0, 243, 255, 0.2); }
+        .search-container { display: flex; gap: 10px; margin-bottom: 20px; height: 45px; }
+        .search-container input { height: 100%; margin: 0; }
+        .search-container button { height: 100%; width: 55px; background: var(--neon); color: black; border: none; border-radius: 2px; cursor: pointer; font-size: 20px; flex-shrink: 0; }
+
+        /* HEADER */
+        header { height: 70px; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; background: rgba(0,0,0,0.9); border-bottom: 1px solid #333; z-index: 50; box-shadow: 0 5px 20px rgba(0,0,0,0.5); }
+        .logo { font-family: 'Teko'; font-size: 34px; color: var(--neon); letter-spacing: 2px; text-shadow: 0 0 15px var(--neon); font-style: italic; }
+        .bal-box { background: rgba(0,0,0,0.6); padding: 2px 15px; border: 1px solid #444; border-radius: 2px; color: var(--gold); font-family: 'Teko'; font-size: 24px; display:flex; align-items:center; gap:5px; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); }
+        .bell, .cart-btn { font-size: 22px; position: relative; cursor: pointer; color: #fff; transition: 0.3s; }
+        .dot-notif { width: 8px; height: 8px; background: var(--pink); border-radius: 50%; position: absolute; top: 0; right: 2px; display: none; box-shadow: 0 0 5px var(--pink); }
+
+        #main { flex: 1; overflow-y: auto; padding: 20px; padding-bottom: 90px; }
+        .title { font-family: 'Teko'; font-size: 28px; color: #fff; margin-bottom: 15px; border-left: 4px solid var(--neon); padding-left: 12px; text-transform: uppercase; letter-spacing: 1px; background: linear-gradient(90deg, rgba(0,243,255,0.1), transparent); }
+
+        /* CARDS */
+        .card { background: var(--card-bg); border: 1px solid #333; border-radius: 4px; padding: 15px; margin-bottom: 15px; position: relative; overflow: hidden; backdrop-filter: blur(5px); box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .card::before { content:''; position: absolute; top:0; left:0; width:4px; height:100%; background: var(--neon); box-shadow: 0 0 10px var(--neon); }
+        .flex-sb { display: flex; justify-content: space-between; align-items: center; }
+        .match-date { color: #00f3ff; font-size: 14px; font-weight: 700; text-transform: uppercase; text-shadow: 0 0 5px rgba(0,243,255,0.3); }
+        .tag { background: rgba(0, 243, 255, 0.1); padding: 2px 8px; font-size: 11px; border-radius: 2px; color: var(--neon); text-transform: uppercase; border: 1px solid var(--neon); letter-spacing: 1px; }
+        .match-info { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin: 12px 0; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 4px; border: 1px solid #222; }
+        .info-box span { display: block; font-size: 10px; color: #aaa; font-weight: bold; } .info-box b { color: #fff; font-size: 14px; }
+        .notice-box { background: rgba(255, 0, 60, 0.1); border: 1px solid var(--pink); color: #ddd; font-size: 13px; padding: 8px; margin: 10px 0; border-radius: 2px; font-style: italic; border-left: 3px solid var(--pink); }
+        .rules-icon { font-size: 18px; color: var(--neon); cursor: pointer; background: rgba(0,243,255,0.1); padding: 4px 8px; border-radius: 4px; border: 1px solid #333; }
+        
+        .timer-display { text-align: center; font-family: 'Teko'; font-size: 20px; color: gold; letter-spacing: 2px; margin-top: 5px; text-shadow: 0 0 10px rgba(255,215,0,0.3); }
+
+        .room-card { background: linear-gradient(90deg, #111, #000); border: 1px solid var(--neon); border-radius: 6px; padding: 15px; margin-bottom: 15px; position: relative; overflow: hidden; }
+        .room-card::after { content: 'ROOM'; position: absolute; right: -10px; bottom: -10px; font-size: 60px; color: rgba(255,255,255,0.03); font-family: 'Teko'; font-weight: bold; pointer-events: none; }
+        .room-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px dashed #333; padding-bottom: 8px; }
+        .room-row:last-child { border: none; margin: 0; padding: 0; }
+        .room-lbl { font-size: 10px; color: var(--neon); text-transform: uppercase; letter-spacing: 1px; font-weight: bold; }
+        .room-val { font-family: monospace; font-size: 16px; color: #fff; letter-spacing: 1px; }
+
+        .modal-prize-box { background: linear-gradient(135deg, #111, #000); padding: 15px; border-radius: 4px; border: 1px solid var(--gold); margin-bottom: 15px; }
+        .prize-row { display: flex; justify-content: space-between; border-bottom: 1px dashed #333; padding: 5px 0; font-size: 14px; }
+        .prize-row b { color: var(--gold); }
+        .modal-rules-box { background: #050505; padding: 15px; border-radius: 4px; border-left: 3px solid var(--neon); }
+        .modal-rules-box h4 { color: var(--neon); font-family: 'Teko'; font-size: 20px; margin-bottom: 5px; }
+
+        .badge { 
+            font-size: 10px; padding: 3px 8px; border-radius: 0; font-weight: bold; color: #000; display: inline-block; vertical-align: middle; margin-left: 5px; 
+            clip-path: polygon(0% 0%, 100% 0%, 100% 75%, 50% 100%, 0% 75%);
+            text-shadow: none; border: none; box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+        }
+        .b-v { background: linear-gradient(180deg, #ffd700, #ff8c00); color: #000; }
+        .b-mod { background: linear-gradient(180deg, #00c6ff, #0072ff); color: #fff; }
+        .b-pro { background: linear-gradient(180deg, #ff003c, #800020); color: #fff; }
+        .b-admin { background: linear-gradient(180deg, #fff, #ffd700); color: #000; box-shadow: 0 0 10px gold; }
+
+        .wallet-sec { background: var(--card-bg); border: 1px solid #333; border-radius: 4px; padding: 15px; margin-bottom: 20px; position: relative; }
+        .wallet-head { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 15px; }
+        .help-btn { width: 20px; height: 20px; border-radius: 50%; background: #222; color: var(--neon); display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid var(--neon); font-size: 12px; margin-left: 8px; }
+        .hist-item { display: flex; justify-content: space-between; padding: 12px; background: rgba(0,0,0,0.4); border-bottom: 1px solid #222; margin-bottom: 5px; border-radius: 4px; font-size: 14px; border-left: 2px solid #333; align-items: center; }
+
+        .prof-card { background: linear-gradient(180deg, rgba(20,20,25,0.8) 0%, rgba(5,5,5,0.9) 100%); border: 1px solid #333; border-radius: 8px; padding: 25px; text-align: center; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .p-avatar { width: 90px; height: 90px; border: 2px solid var(--neon); border-radius: 50%; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-size: 35px; background: #000; box-shadow: var(--neon-glow); }
+        .p-name { font-family: 'Teko'; font-size: 36px; color: #fff; line-height: 1; display:flex; align-items:center; justify-content:center; gap:5px; text-shadow: 0 0 10px rgba(255,255,255,0.1); }
+        .p-email { color: #888; font-size: 13px; margin-top: 5px; }
+        .p-bio { color: #aaa; font-style: italic; margin: 15px auto; font-size: 14px; border: 1px solid #333; padding: 8px; border-radius: 4px; background: rgba(0,0,0,0.4); max-width: 90%; word-wrap: break-word; overflow-wrap: break-word; white-space: pre-wrap; }
+        
+        .p-meta-row { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 10px; }
+        .social-box { display: flex; gap: 20px; align-items: center; margin-left: 10px; } 
+        .social-container { background: #1a1a1a; padding: 10px 15px; border-radius: 6px; border: 1px solid #333; display: inline-block; margin-top: 10px; }
+        .social-btn { font-size: 22px; color: #fff; cursor: pointer; transition: 0.3s; }
+        .social-btn:hover { transform: scale(1.2); }
+        .social-btn.yt { color: var(--yt); }
+        .social-btn.tt { color: #fff; }
+        .social-btn.fb { color: var(--fb); }
+
+        .prof-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+        .copy-icon { cursor: pointer; color: var(--neon); margin-left: 5px; font-size: 16px; transition: 0.2s; }
+
+        .lb-item { display: flex; align-items: center; background: rgba(0,0,0,0.4); margin-bottom: 8px; padding: 10px; border-radius: 4px; border-bottom: 1px solid #333; transition: 0.2s; }
+        .lb-rank { font-family: 'Teko'; font-size: 24px; color: #666; width: 30px; text-align: center; margin-right: 10px; font-weight: bold; }
+        .lb-rank.top1 { color: #ffd700; text-shadow: 0 0 10px gold; }
+        .lb-rank.top2 { color: silver; }
+        .lb-rank.top3 { color: #cd7f32; }
+
+        nav { height: 70px; justify-content: space-around; align-items: center; border-top: 1px solid var(--neon); z-index: 100; backdrop-filter: blur(10px); background: rgba(0,0,0,0.9); position: fixed; bottom: 0; width: 100%; box-shadow: 0 -5px 20px rgba(0,243,255,0.1); }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: #666; font-size: 10px; font-weight: bold; letter-spacing: 1px; transition: 0.3s; cursor: pointer; }
+        .nav-item.active { color: var(--neon); text-shadow: 0 0 10px var(--neon); transform: translateY(-4px); }
+        .nav-icon { font-size: 22px; margin-bottom: 2px; }
+
+        #loader { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; justify-content: center; align-items: center; flex-direction: column; }
+        .spinner { width: 60px; height: 60px; border: 4px solid #111; border-top: 4px solid var(--neon); border-radius: 50%; animation: spin 0.8s linear infinite; box-shadow: 0 0 20px var(--neon); }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .toast { position: fixed; top: 90px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.9); border: 1px solid var(--neon); padding: 12px 30px; z-index: 6000; opacity: 0; transition: 0.3s; pointer-events: none; color: var(--neon); font-family: 'Teko'; font-size: 18px; letter-spacing: 1px; white-space: nowrap; box-shadow: 0 0 15px rgba(0,243,255,0.2); }
+        .toast.show { opacity: 1; top: 110px; }
+        
+        #modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .modal-box { width: 90%; max-width: 360px; background: #0a0a0a; border: 1px solid var(--neon); padding: 25px; position: relative; max-height: 85vh; overflow-y: auto; box-shadow: 0 0 30px rgba(0,243,255,0.15); }
+        .close-icon { position: absolute; top: 15px; right: 15px; color: #666; font-size: 22px; cursor: pointer; }
+        
+        /* New: Modal Animation Removed for cleaner look on mobile, kept fade */
+        #auth, #verify-screen { position: fixed; inset: 0; background: #000; z-index: 3000; display: flex; justify-content: center; align-items: center; flex-direction: column; }
+        .auth-box { width: 85%; max-width: 400px; padding: 30px; background: #111; border: 1px solid #333; text-align: center; box-shadow: 0 0 20px rgba(0,243,255,0.1); border-radius: 4px; }
+        .u-item { display: flex; align-items: center; background: rgba(255,255,255,0.03); padding: 10px; border-bottom: 1px solid #222; cursor: pointer; transition: 0.2s; }
+        .u-av { width: 40px; height: 40px; background: #000; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin-right: 15px; border: 1px solid #444; }
+    </style>
+</head>
+<body>
+
+    <div id="toast" class="toast">System Message</div>
+    <div id="loader"><div class="spinner"></div><p style="margin-top:20px; color:var(--neon); font-family:'Teko'; font-size:24px; letter-spacing:2px;">LOADING ZONE...</p></div>
+
+    <div id="app-popup">
+        <div class="ff-pop-card">
+            <span class="ff-pop-close" onclick="closePop()">✕</span>
+            <img src="" class="ff-pop-img" id="pop-img">
+            <div class="ff-pop-content">
+                <h3 id="pop-title" style="color:var(--neon); font-family:'Teko'; font-size:24px;">EVENT TITLE</h3>
+                <p id="pop-text" style="color:#ccc; font-size:13px; margin:8px 0;"></p>
+                <button class="btn btn-neon" id="pop-btn" onclick="popAction()">VIEW EVENT</button>
+                <div class="ff-pop-check">
+                    <input type="checkbox" id="pop-block" style="width:14px; height:14px; margin:0;">
+                    <label for="pop-block">Don't show again today</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="verify-screen">
+        <div class="auth-box">
+            <h2 style="color:var(--neon); font-family:'Teko'; font-size:30px;">VERIFY EMAIL</h2>
+            <p style="color:#ccc; margin:15px 0;">Check inbox & spam folder for verification link.</p>
+            <button class="btn btn-outline" onclick="location.reload()">I HAVE VERIFIED</button>
+            <button class="btn btn-red" onclick="logout()" style="margin-top:10px">LOGOUT</button>
+        </div>
+    </div>
+
+    <div id="modal">
+        <div class="modal-box" id="modal-content-box">
+            <span class="close-icon" onclick="closeModal()">✕</span>
+            <h3 id="m-title" style="color:var(--neon); margin-bottom:20px; font-family:'Teko'; font-size:28px; border-bottom:1px solid #333; padding-bottom:10px;">TITLE</h3>
+            <div id="m-body"></div>
+        </div>
+    </div>
+
+    <div id="auth">
+        <div class="auth-box" id="login-f">
+            <h1 class="logo" style="font-size:45px; margin-bottom:30px;">ZoneClash</h1>
+            <input type="email" id="le" placeholder="EMAIL ADDRESS">
+            <input type="password" id="lp" placeholder="PASSWORD">
+            <button class="btn btn-neon" onclick="login()">LOGIN NOW</button>
+            <p style="margin-top:20px; color:#666; font-size:14px; cursor:pointer" onclick="toggleAuth()">CREATE NEW ACCOUNT</p>
+        </div>
+        <div class="auth-box hidden" id="reg-f">
+            <h2 style="color:var(--pink); font-family:'Teko'; font-size:30px; margin-bottom:20px;">REGISTER</h2>
+            <input type="text" id="rn" placeholder="USERNAME (UNIQUE)">
+            <input type="email" id="re" placeholder="EMAIL (REAL)">
+            <input type="password" id="rp" placeholder="PASSWORD">
+            <input type="number" id="rf" placeholder="FREE FIRE UID">
+            <input type="text" id="rr" placeholder="REFERRAL CODE (OPTIONAL)">
+            <button class="btn btn-red" id="reg-btn" onclick="reg()">SIGN UP</button>
+            <p style="margin-top:20px; color:#666; font-size:14px; cursor:pointer" onclick="toggleAuth()">BACK TO LOGIN</p>
+        </div>
+    </div>
+
+    <header>
+        <div class="logo">ZoneClash</div>
+        <div style="display:flex; gap:15px; align-items:center;">
+            <div class="cart-btn" onclick="goToKodular('Shop')">🛒</div>
+            <div class="bal-box">৳ <span id="bal">0</span></div>
+            <div class="bell" onclick="showNotif()">🔔<div class="dot-notif" id="dot"></div></div>
+        </div>
+    </header>
+
+    <div id="main">
+        <div id="pg-home">
+            <div class="slider-container" id="slider-container">
+                <div class="slider-arrow left" onclick="moveSlide(-1)">❮</div>
+                <div class="slider-arrow right" onclick="moveSlide(1)">❯</div>
+                <div class="slider-wrapper" id="slider-wrapper"></div>
+                <div class="slider-dots" id="slider-dots"></div>
+            </div>
+
+            <div class="title">Live Matches</div>
+            
+            <div class="cat-bar">
+                <div class="cat-item active" onclick="setMatchCat('All', this)">All</div>
+                <div class="cat-item" onclick="setMatchCat('BR', this)">BR</div>
+                <div class="cat-item" onclick="setMatchCat('CS', this)">CS</div>
+                <div class="cat-item" onclick="setMatchCat('LW', this)">LW</div>
+                <div class="cat-item" onclick="setMatchCat('Free', this)">Free</div>
+                <div class="cat-item" onclick="setMatchCat('Joined', this)" style="border-color:var(--gold); color:var(--gold);">My Matches</div>
+            </div>
+
+            <div id="tour-list" style="padding-bottom:20px;">Loading Matches...</div>
+            <div id="lazy-loader" style="text-align:center; padding:10px; display:none; color:var(--neon);">Loading more...</div>
+        </div>
+        
+        <div id="pg-search" class="hidden">
+            <div class="title">Find Player</div>
+            <div class="search-container">
+                <input type="text" id="s-input" placeholder="Search by name...">
+                <button onclick="searchUser()">🔍</button>
+            </div>
+            
+            <div id="search-res"></div>
+            
+            <div id="lb-container">
+                <div class="title" style="margin-top:30px; border-color:gold; color:gold;">Richest Players</div>
+                <div id="leaderboard-list" style="padding-bottom:20px;">
+                    <p style="text-align:center; color:#555;">Loading Leaderboard...</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="pg-wallet" class="hidden">
+            <div class="title">My Wallet</div>
+            <div class="wallet-sec">
+                <div class="wallet-head"><div style="display:flex; align-items:center"><span style="color:#aaa; font-weight:bold;">BALANCE</span><div class="help-btn" onclick="openHelp()">?</div></div><span style="color:gold; font-family:'Teko'; font-size:30px;">৳ <span id="w-bal">0</span></span></div>
+                
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+                    <button class="btn btn-neon" style="margin:0" onclick="openRecharge()">RECHARGE</button>
+                    <button class="btn btn-outline" style="margin:0; border-color:#fff; color:#fff;" onclick="openWit()">WITHDRAW</button>
+                </div>
+            </div>
+            <div class="title" style="font-size:24px; border-color:var(--pink)">History</div>
+            <div id="req-history" style="padding-bottom:20px; min-height:100px;">
+                <p style="text-align:center; color:#555; padding-top:20px;">No History Found</p>
+            </div>
+        </div>
+
+        <div id="pg-prof" class="hidden">
+            <div class="prof-card">
+                <div class="p-avatar">👤</div>
+                <div class="p-name"><span id="p-name">User</span> <span id="p-badge"></span></div>
+                <div class="p-email" id="p-email">email@example.com</div>
+                
+                <div class="p-meta-row">
+                    <span style="color:#aaa;background:#1a1a1a;padding:3px 8px;border-radius:4px;font-family:monospace;font-size:13px;border:1px solid #333;">
+                        UID: <span id="p-uid">---</span> <span class="copy-icon" onclick="copyUID()">❐</span>
+                    </span>
+                    <span style="color:#aaa;background:#1a1a1a;padding:3px 8px;border-radius:4px;font-family:monospace;font-size:13px;border:1px solid #333;">
+                        IGN: <span id="p-ign" style="color:var(--neon)">---</span>
+                    </span>
+                </div>
+                
+                <div style="text-align:center;">
+                    <div class="social-container" style="display:flex; align-items:center; justify-content:center; gap:10px;">
+                        <span style="color:#aaa; font-size:12px; white-space:nowrap;">Social Link:</span>
+                        <div id="p-socials" class="social-box" style="margin-left:0;"></div>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:15px;">
+                    <div style="background:#1a1a1a; padding:5px; border-radius:4px;"><small style="color:#aaa">BALANCE</small><br><b style="color:gold">৳ <span id="p-bal">0</span></b></div>
+                    <div style="background:#1a1a1a; padding:5px; border-radius:4px;"><small style="color:#aaa">MATCHES</small><br><b style="color:var(--neon)" id="p-matches">0</b></div>
+                </div>
+                <div class="p-bio" id="p-bio">No bio added.</div>
+            </div>
+            <div class="prof-btns">
+                <button class="btn btn-outline" style="margin:0; font-size:18px; color:white; border-color:#555;" onclick="window.open('http://zoneclash.tilda.ws/upd', '_blank')">UPDATE</button>
+                <button class="btn btn-outline" style="margin:0; font-size:18px; color:white; border-color:#555;" onclick="window.open('http://zoneclash.tilda.ws/rule', '_blank')">ALL RULES</button>
+            </div>
+            <div class="prof-btns"><button class="btn btn-outline" style="margin:0" onclick="openEditProf()">EDIT PROFILE</button><button class="btn btn-red" style="margin:0" onclick="logout()">LOGOUT</button></div>
+            <div class="prof-btns"><button class="btn btn-neon" style="margin:0; background:#222; color:white; border:1px solid #333;" onclick="openSupport()">SUPPORT</button><button class="btn btn-neon" style="margin:0; background:#222; color:white; border:1px solid #333;" onclick="openInbox()">INBOX</button></div>
+        </div>
+    </div>
+
+    <nav>
+        <div class="nav-item active" onclick="tab('home', this)"><div class="nav-icon">⚔️</div>MATCH</div>
+        <div class="nav-item" onclick="tab('search', this)"><div class="nav-icon">🔍</div>SEARCH</div>
+        <div class="nav-item" onclick="tab('wallet', this)"><div class="nav-icon">💳</div>WALLET</div>
+        <div class="nav-item" onclick="tab('prof', this)"><div class="nav-icon">💀</div>PROFILE</div>
+    </nav>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, sendEmailVerification } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+        import { getDatabase, ref, onValue, update, push, query, orderByChild, startAt, endAt, get, limitToLast, equalTo } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyAFfNhpqy5BZBD_8IpGBjsZf9SvyPZj-54",
+          authDomain: "zc-team.firebaseapp.com",
+          databaseURL: "https://zc-team-default-rtdb.asia-southeast1.firebasedatabase.app",
+          projectId: "zc-team",
+          storageBucket: "zc-team.firebasestorage.app",
+          messagingSenderId: "790397012628",
+          appId: "1:790397012628:web:547b1be9d1815d9378c281",
+          measurementId: "G-KDN8KGT1PJ"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+        
+        let user = null; 
+        let notifHtml = '';
+        let currentCategory = 'All';
+        let rawTournaments = {};
+        let sliderIndex = 0;
+        let sliderInterval = null;
+        let sliderCount = 0;
+        let popupData = null;
+        // Optimized Global Timer
+        let activeMatchIds = [];
+        let globalTimerInterval = null;
+
+        // --- LAZY LOAD VARIABLES ---
+        let currentMatchList = [];
+        let renderedMatchCount = 0;
+        const matchBatchSize = 10; // Increased batch for better UX
+
+        // --- FORMAT UTILS ---
+        function formatMoney(amount) {
+            return Number(amount).toLocaleString('en-US');
+        }
+
+        function isValidName(name) {
+            const regex = /^[a-zA-Z0-9 ._-]+$/;
+            return regex.test(name);
+        }
+
+        onAuthStateChanged(auth, u => {
+            document.getElementById('loader').style.display = 'none';
+            if(u) {
+                if(u.emailVerified) {
+                    showApp();
+                    // Load global data only if not loaded
+                    if(Object.keys(rawTournaments).length === 0) loadGlobalData();
+                    initLeaderboardRealtime();
+                    
+                    onValue(ref(db, `users/${u.uid}`), s => {
+                        if(s.exists()) {
+                            user = s.val(); 
+                            user.uid = u.uid; 
+                            user.email = u.email;
+                            updateUI(); 
+                        }
+                    });
+                } else {
+                    hideApp();
+                    document.getElementById('auth').style.display = 'none';
+                    document.getElementById('verify-screen').style.display = 'flex';
+                }
+            } else {
+                hideApp();
+                document.getElementById('auth').style.display = 'flex';
+            }
+        });
+
+        function showApp() {
+            document.querySelector('header').style.display = 'flex';
+            document.getElementById('main').style.display = 'block';
+            document.querySelector('nav').style.display = 'flex';
+            document.getElementById('auth').style.display = 'none';
+            document.getElementById('verify-screen').style.display = 'none';
+        }
+        function hideApp() {
+            document.querySelector('header').style.display = 'none';
+            document.getElementById('main').style.display = 'none';
+            document.querySelector('nav').style.display = 'none';
+        }
+
+        function updateUI() {
+            if(!user) return;
+            // Currency Formatting applied
+            document.getElementById('bal').innerText = formatMoney(user.balance || 0);
+            document.getElementById('w-bal').innerText = formatMoney(user.balance || 0);
+            document.getElementById('p-bal').innerText = formatMoney(user.balance || 0);
+            
+            document.getElementById('p-name').innerText = user.name;
+            document.getElementById('p-badge').innerHTML = getBadgeHtml(user.badge);
+            document.getElementById('p-email').innerText = user.email;
+            document.getElementById('p-uid').innerText = user.ffID;
+            document.getElementById('p-ign').innerText = user.ign || "Not Set";
+            document.getElementById('p-bio').innerText = user.bio || "No bio added.";
+            const matchCount = user.registeredTournaments ? Object.keys(user.registeredTournaments).length : 0;
+            document.getElementById('p-matches').innerText = matchCount;
+            
+            const sBox = document.getElementById('p-socials');
+            sBox.innerHTML = '';
+            if(user.ytLink) sBox.innerHTML += `<i class="fa-brands fa-youtube social-btn yt" style="font-size:18px;" onclick="window.open('${user.ytLink}', '_blank')"></i>`;
+            if(user.fbLink) sBox.innerHTML += `<i class="fa-brands fa-facebook social-btn fb" style="font-size:18px;" onclick="window.open('${user.fbLink}', '_blank')"></i>`;
+            if(user.ttLink) sBox.innerHTML += `<i class="fa-brands fa-tiktok social-btn tt" style="font-size:18px;" onclick="window.open('${user.ttLink}', '_blank')"></i>`;
+            
+            prepareTournaments();
+        }
+
+        function getBadgeHtml(b) {
+            if(!b) return '';
+            const badges = {
+                'V-BADGE': '<span class="badge b-v">V.I.P</span>',
+                'CREATOR': '<span class="badge b-creat">CREATOR</span>',
+                'MODERATOR': '<span class="badge b-mod">MOD</span>',
+                'PROFESSIONAL': '<span class="badge b-pro">PRO</span>',
+                'ADMIN': '<span class="badge b-admin">ADMIN</span>'
+            };
+            return badges[b] || '';
+        }
+
+        function loadGlobalData() {
+            onValue(ref(db, 'banners'), s => {
+                if(s.exists()) renderBanners(s.val());
+                else document.getElementById('slider-container').style.display = 'none';
+            });
+            onValue(ref(db, 'appPopup'), s => {
+                if(s.exists()) {
+                    popupData = s.val();
+                    const blocked = localStorage.getItem('blockPop');
+                    const today = new Date().toDateString();
+                    if(blocked !== today) showAppPopup();
+                }
+            });
+            onValue(query(ref(db, 'tournaments'), limitToLast(50)), s => { 
+                rawTournaments = s.val() || {};
+                prepareTournaments(); 
+            });
+            
+            if(auth.currentUser) {
+                const reqRef = query(ref(db, 'requests'), orderByChild('uid'), equalTo(auth.currentUser.uid), limitToLast(50));
+                onValue(reqRef, s => {
+                    const list = document.getElementById('req-history');
+                    list.innerHTML = '';
+                    if(s.exists()) {
+                        let items = [];
+                        s.forEach(child => { items.push(child.val()); });
+                        items.reverse().forEach(r => {
+                            let color = r.status === 'approved' ? '#00f3ff' : (r.status === 'pending' ? '#ff9800' : '#ff003c');
+                            let typeLabel = r.type === 'deposit' ? 'RECHARGE' : (r.type === 'withdraw' ? 'WITHDRAW' : 'TRANSFER');
+                            list.innerHTML += `
+                                <div class="hist-item" style="border-left: 2px solid ${color}">
+                                    <div>
+                                        <b style="color:${r.type === 'deposit' ? '#00f3ff' : '#ff9800'}">${typeLabel} ৳${formatMoney(r.amount)}</b>
+                                        <div style="font-size:10px; color:#555;">${new Date(r.time).toLocaleString()}</div>
+                                    </div>
+                                    <div style="color:${color}; font-weight:bold; font-size:12px;">${r.status.toUpperCase()}</div>
+                                </div>`;
+                        });
+                    } else {
+                        list.innerHTML = '<p style="text-align:center; color:#555; padding-top:20px;">No transaction history</p>';
+                    }
+                });
+            }
+        }
+
+        function showAppPopup() {
+            if(!popupData) return;
+            document.getElementById('pop-img').src = popupData.image;
+            document.getElementById('pop-title').innerText = popupData.title;
+            document.getElementById('pop-text').innerText = popupData.text;
+            document.getElementById('pop-btn').innerText = popupData.btnText || 'JOIN NOW';
+            document.getElementById('app-popup').style.display = 'flex';
+        }
+
+        window.closePop = () => {
+            if(document.getElementById('pop-block').checked) localStorage.setItem('blockPop', new Date().toDateString());
+            document.getElementById('app-popup').style.display = 'none';
+        }
+
+        window.popAction = () => { if(popupData && popupData.link) window.open(popupData.link, '_blank'); closePop(); }
+
+        function renderBanners(banners) {
+            const wrapper = document.getElementById('slider-wrapper');
+            const dots = document.getElementById('slider-dots');
+            wrapper.innerHTML = ''; dots.innerHTML = '';
+            const bannerList = Object.values(banners);
+            if(bannerList.length === 0) { document.getElementById('slider-container').style.display = 'none'; return; }
+            sliderCount = bannerList.length;
+            bannerList.forEach((b, i) => {
+                const slide = document.createElement('div');
+                slide.className = 'slide'; slide.style.backgroundImage = `url(${b.image})`;
+                slide.onclick = () => { if(b.link) window.open(b.link, '_blank'); };
+                wrapper.appendChild(slide);
+                const dot = document.createElement('div');
+                dot.className = `dot ${i === 0 ? 'active' : ''}`;
+                dots.appendChild(dot);
+            });
+            startSlider(bannerList.length);
+        }
+
+        function startSlider(count) {
+            if(sliderInterval) clearInterval(sliderInterval); if(count <= 1) return;
+            sliderInterval = setInterval(() => { sliderIndex = (sliderIndex + 1) % count; updateSliderPosition(); }, 4000);
+        }
+
+        window.moveSlide = (n) => {
+            if(sliderCount <= 1) return;
+            clearInterval(sliderInterval);
+            sliderIndex = (sliderIndex + n + sliderCount) % sliderCount;
+            updateSliderPosition();
+            startSlider(sliderCount);
+        }
+
+        function updateSliderPosition() {
+            const wrapper = document.getElementById('slider-wrapper');
+            const dots = document.querySelectorAll('.slider-dots .dot');
+            if(wrapper) wrapper.style.transform = `translateX(-${sliderIndex * 100}%)`;
+            dots.forEach((d, i) => { d.classList.toggle('active', i === sliderIndex); });
+        }
+
+        window.goToKodular = (screen) => {
+            if(window.AppInventor) window.AppInventor.setWebViewString(screen);
+            else toast("Navigating to: " + screen);
+        }
+
+        window.setMatchCat = (cat, el) => {
+            currentCategory = cat;
+            document.querySelectorAll('.cat-item').forEach(item => item.classList.remove('active'));
+            el.classList.add('active'); 
+            prepareTournaments(); 
+        };
+
+        // --- PREPARE MATCH LIST FOR LAZY LOADING ---
+        function prepareTournaments() {
+            if(!user) return; 
+            currentMatchList = [];
+            notifHtml = '';
+            let hn = false;
+            
+            // Stop existing Global Timer
+            if(globalTimerInterval) clearInterval(globalTimerInterval);
+            activeMatchIds = [];
+
+            Object.keys(rawTournaments).reverse().forEach(k => {
+                const t = rawTournaments[k];
+                const registeredCount = t.registeredUsers ? Object.keys(t.registeredUsers).length : 0;
+                const isJoined = user.registeredTournaments && user.registeredTournaments[k];
+                let show = false;
+                
+                if(currentCategory === 'All') show = true;
+                else if(currentCategory === 'Free' && t.entryFee == 0) show = true;
+                else if(currentCategory === 'Joined' && isJoined) show = true;
+                else if(t.type && t.type.toUpperCase().includes(currentCategory.toUpperCase())) show = true;
+
+                if(show) {
+                    // Check if match is older than 24 hours to hide (optional cleanup)
+                    if(isJoined && t.roomID) { 
+                        hn = true; 
+                        notifHtml += `<div class="room-card">
+                            <div class="room-row">
+                                <div><div class="room-lbl">MATCH TITLE</div><div class="room-val">${t.title}</div></div>
+                                <div><div class="room-lbl">TYPE</div><div class="room-val">${t.type||'SOLO'}</div></div>
+                            </div>
+                            <div class="room-row">
+                                <div><div class="room-lbl">PASSWORD</div><div class="room-val">${t.roomPass}</div></div>
+                            </div>
+                            <div class="room-row">
+                                <div><div class="room-lbl">ROOM ID</div><div class="room-val">${t.roomID}</div></div>
+                                <button class="btn-sm" onclick="copy('${t.roomID}')">COPY</button>
+                            </div>
+                        </div>`; 
+                    }
+                    currentMatchList.push({ id: k, ...t, registeredCount, isJoined });
+                }
+            });
+
+            document.getElementById('dot').style.display = hn ? 'block' : 'none';
+            document.getElementById('tour-list').innerHTML = ''; 
+            renderedMatchCount = 0; 
+            renderNextBatch(); 
+            // Start Global Timer Logic
+            startGlobalTimer();
+        }
+
+        // --- RENDER BATCH (Optimized) ---
+        function renderNextBatch() {
+            const listDiv = document.getElementById('tour-list');
+            const loader = document.getElementById('lazy-loader');
+            
+            if(currentMatchList.length === 0) {
+                listDiv.innerHTML = '<p style="text-align:center;color:#555;padding:20px;">No matches found.</p>';
+                loader.style.display = 'none';
+                return;
+            }
+
+            const nextBatch = currentMatchList.slice(renderedMatchCount, renderedMatchCount + matchBatchSize);
+            
+            if(nextBatch.length === 0) {
+                loader.style.display = 'none';
+                return;
+            }
+
+            nextBatch.forEach(t => {
+                // Formatting currency in buttons and info
+                let btnId = `btn-${t.id}`;
+                let btn = t.isJoined ? `<button id="${btnId}" class="btn btn-dis">JOINED ✅</button>` : (t.registeredCount >= t.maxPlayers ? `<button id="${btnId}" class="btn btn-dis">FULL</button>` : `<button id="${btnId}" class="btn btn-neon" onclick="join('${t.id}',${t.entryFee})">JOIN (৳${formatMoney(t.entryFee)})</button>`);
+                let noticeHtml = t.notice ? `<div class="notice-box">📢 ${t.notice}</div>` : '';
+                
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div class="flex-sb">
+                        <span class="tag">${t.type || 'Classic'}</span>
+                        <span class="match-date">${t.date} | ${t.time}</span>
+                        <span class="rules-icon" onclick="showRules('${t.id}')">📜</span>
+                    </div>
+                    <h3 style="font-family:'Teko';font-size:26px;margin-top:8px;color:#fff;">${t.title}</h3>
+                    ${noticeHtml}
+                    <div class="match-info">
+                        <div class="info-box" onclick="viewSlots('${t.id}')" style="cursor:pointer;"><span>SLOTS</span><b>${t.registeredCount}/${t.maxPlayers}</b></div>
+                        <div class="info-box" onclick="showRules('${t.id}')" style="cursor:pointer"><span>WINNER</span><b style="color:gold">৳${formatMoney(t.winnerPrize || 0)}</b></div>
+                        <div class="info-box" onclick="showRules('${t.id}')" style="cursor:pointer"><span>KILL</span><b style="color:var(--neon)">৳${formatMoney(t.prizePerKill)}/kill</b></div>
+                    </div>
+                    <div id="timer-box-${t.id}" class="timer-display">Loading...</div>
+                    ${btn}
+                `;
+                listDiv.appendChild(card);
+                
+                // Add to Global Timer Tracking
+                const target = parseMatchTime(t.date, t.time);
+                if(target) {
+                    activeMatchIds.push({ id: t.id, target: target });
+                    // Initial Instant Update (No delay)
+                    updateSingleTimer(t.id, target);
+                }
+            });
+
+            renderedMatchCount += nextBatch.length;
+            loader.style.display = renderedMatchCount < currentMatchList.length ? 'block' : 'none';
+        }
+
+        // --- GLOBAL OPTIMIZED TIMER ---
+        function parseMatchTime(dateStr, timeStr) {
+            try {
+                const [d, m, y] = dateStr.split('-');
+                let [t, modifier] = timeStr.split(' ');
+                let [hours, minutes] = t.split(':');
+                if (hours === '12') hours = '00';
+                if (modifier === 'PM') hours = parseInt(hours, 10) + 12;
+                return new Date(y, m - 1, d, hours, minutes).getTime();
+            } catch(e) { return null; }
+        }
+
+        function startGlobalTimer() {
+            if(globalTimerInterval) clearInterval(globalTimerInterval);
+            globalTimerInterval = setInterval(() => {
+                const now = Date.now();
+                activeMatchIds.forEach(item => {
+                    const el = document.getElementById(`timer-box-${item.id}`);
+                    if(!el) return; // Element might not be in DOM if filtered or removed
+                    
+                    const diff = item.target - now;
+                    if (diff <= 0) {
+                        if(el.innerText !== "STARTED") {
+                            el.innerText = "STARTED";
+                            el.style.color = "red";
+                            const btn = document.getElementById(`btn-${item.id}`);
+                            if(btn && !btn.classList.contains('btn-dis')) {
+                                btn.disabled = true;
+                                btn.innerText = "STARTED";
+                                btn.classList.add('btn-dis');
+                                btn.classList.remove('btn-neon');
+                                btn.onclick = null;
+                            }
+                        }
+                    } else {
+                        const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                        const s = Math.floor((diff % (1000 * 60)) / 1000);
+                        el.innerText = `Starts in: ${h}h ${m}m ${s}s`;
+                    }
+                });
+            }, 1000);
+        }
+
+        function updateSingleTimer(tid, target) {
+             const el = document.getElementById(`timer-box-${tid}`);
+             if(!el) return;
+             const now = Date.now();
+             const diff = target - now;
+             if (diff <= 0) {
+                el.innerText = "STARTED";
+                el.style.color = "red";
+             } else {
+                const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const s = Math.floor((diff % (1000 * 60)) / 1000);
+                el.innerText = `Starts in: ${h}h ${m}m ${s}s`;
+             }
+        }
+
+        // --- IMPROVED LAZY LOAD SCROLL ---
+        document.getElementById('main').addEventListener('scroll', () => {
+            const main = document.getElementById('main');
+            // Load earlier (Buffer increased from 50 to 200px)
+            if (main.scrollTop + main.clientHeight >= main.scrollHeight - 200) {
+                if (renderedMatchCount < currentMatchList.length) {
+                    renderNextBatch();
+                }
+            }
+        });
+
+        window.viewSlots = async (tid) => {
+            showModal("JOINED PLAYERS", "<p style='text-align:center'>Loading...</p>");
+            try {
+                const snap = await get(ref(db, `tournaments/${tid}/registeredUsers`));
+                if(snap.exists()) {
+                    let html = '<div style="max-height:300px; overflow-y:auto;">';
+                    let i = 1;
+                    snap.forEach(c => {
+                        const p = c.val();
+                        html += `<div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #333; font-size:14px;">
+                            <span style="color:#aaa;">${i++}. ${p.name}</span>
+                            <span style="color:var(--neon); font-family:monospace;">${p.ign || '---'}</span>
+                        </div>`;
+                    });
+                    html += '</div>';
+                    showModal("JOINED PLAYERS", html);
+                } else {
+                    showModal("JOINED PLAYERS", "<p style='text-align:center;color:#666'>No players joined yet.</p>");
+                }
+            } catch(e) {
+                showModal("ERROR", "Failed to load list.");
+            }
+        }
+
+        window.showRules = (tid) => {
+            const t = rawTournaments[tid];
+            showModal("MATCH DETAILS", `
+                <div class="modal-prize-box">
+                    <h4 style="color:gold; font-family:'Teko'; font-size:22px; border-bottom:1px solid #333; margin-bottom:8px;">PRIZE POOL</h4>
+                    <div class="prize-row"><span>1st (Winner) Prize</span> <b>৳${formatMoney(t.winnerPrize || 0)}</b></div>
+                    <div class="prize-row"><span>2nd Prize</span> <b>৳${formatMoney(t.prize2 || 0)}</b></div>
+                    <div class="prize-row"><span>3rd Prize</span> <b>৳${formatMoney(t.prize3 || 0)}</b></div>
+                    <div class="prize-row"><span>4th Prize</span> <b>৳${formatMoney(t.prize4 || 0)}</b></div>
+                    <div class="prize-row"><span>5th Prize</span> <b>৳${formatMoney(t.prize5 || 0)}</b></div>
+                    <div class="prize-row" style="margin-top:10px; border-top:1px solid #333; padding-top:10px;">
+                        <span>Prize Per Kill</span> <b style="color:var(--neon)">৳${formatMoney(t.prizePerKill || 0)}</b>
+                    </div>
+                    ${t.otherPrizes ? `<div class="prize-row" style="border:none"><span>Extras</span> <span style="font-size:12px;color:#aaa">${t.otherPrizes}</span></div>` : ''}
+                </div>
+                <div class="modal-rules-box">
+                    <h4>MATCH RULES</h4>
+                    <p style="font-size:13px; color:#ccc; line-height:1.6;">${t.rules ? t.rules.replace(/\n/g, '<br>') : '1. No hack allowed.<br>2. Emulator not allowed.<br>3. Be on time.'}</p>
+                </div>
+            `);
+        }
+
+        window.searchUser = async () => {
+            const txt = document.getElementById('s-input').value.trim().toLowerCase(); 
+            if(!txt) return toast("Enter name!");
+            
+            document.getElementById('lb-container').classList.add('hidden');
+            document.getElementById('search-res').classList.remove('hidden');
+
+            const d = document.getElementById('search-res'); 
+            d.innerHTML='<p style="text-align:center;color:#666">SEARCHING...</p>';
+            
+            const q = query(ref(db, 'users'), orderByChild('name_lowercase'), startAt(txt), endAt(txt+"\uf8ff"));
+            const s = await get(q); 
+            d.innerHTML='';
+            
+            if(s.exists()) {
+                s.forEach(c => { 
+                    const u=c.val(); 
+                    d.innerHTML += `<div class="u-item" onclick="viewPub('${c.key}')"><div class="u-av">👤</div><div style="flex:1"><div style="font-weight:bold;font-size:16px;">${u.name} ${getBadgeHtml(u.badge)}</div></div><div style="color:var(--neon);font-family:'Teko';font-size:20px;">৳${formatMoney(u.balance || 0)}</div></div>`; 
+                }); 
+            } else {
+                d.innerHTML='<p style="text-align:center;color:#555">NOT FOUND</p>';
+            }
+        }
+        
+        function initLeaderboardRealtime() {
+            const d = document.getElementById('leaderboard-list');
+            const q = query(ref(db, 'users'), orderByChild('balance'), limitToLast(20));
+            
+            onValue(q, (s) => {
+                if(s.exists()) {
+                    d.innerHTML = '';
+                    let players = [];
+                    s.forEach(c => {
+                        let u = c.val();
+                        u.balance = Number(u.balance) || 0;
+                        players.push({key: c.key, ...u});
+                    });
+                    players.reverse();
+                    
+                    players.forEach((p, index) => {
+                        let rankClass = index === 0 ? 'top1' : (index === 1 ? 'top2' : (index === 2 ? 'top3' : ''));
+                        d.innerHTML += `
+                            <div class="lb-item" onclick="viewPub('${p.key}')">
+                                <div class="lb-rank ${rankClass}">#${index + 1}</div>
+                                <div class="u-av" style="width:35px;height:35px;">👤</div>
+                                <div style="flex:1;">
+                                    <div style="font-weight:bold; font-size:15px; color:#fff;">${p.name} ${getBadgeHtml(p.badge)}</div>
+                                </div>
+                                <div style="text-align:right;">
+                                    <div style="color:gold; font-family:'Teko'; font-size:18px;">৳${formatMoney(p.balance)}</div>
+                                    <div style="font-size:9px; color:#aaa;">BALANCE</div>
+                                </div>
+                            </div>`;
+                    });
+                } else {
+                    d.innerHTML = '<p style="text-align:center;color:#555;">No Data Found</p>';
+                }
+            });
+        }
+
+        window.viewPub = async (id) => {
+            const s = await get(ref(db, `users/${id}`)); const u = s.val();
+            const mCount = u.registeredTournaments ? Object.keys(u.registeredTournaments).length : 0;
+            
+            let socHtml = '<div style="background:#1a1a1a;padding:8px 15px;border-radius:6px;border:1px solid #333;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:10px;">';
+            socHtml += '<span style="color:#aaa;font-size:12px;white-space:nowrap;">Social Link:</span>';
+            socHtml += '<div style="display:flex;gap:15px;">';
+            if(u.ytLink) socHtml += `<i class="fa-brands fa-youtube social-btn yt" style="font-size:18px;" onclick="window.open('${u.ytLink}', '_blank')"></i>`;
+            if(u.fbLink) socHtml += `<i class="fa-brands fa-facebook social-btn fb" style="font-size:18px;" onclick="window.open('${u.fbLink}', '_blank')"></i>`;
+            if(u.ttLink) socHtml += `<i class="fa-brands fa-tiktok social-btn tt" style="font-size:18px;" onclick="window.open('${u.ttLink}', '_blank')"></i>`;
+            socHtml += '</div></div>';
+
+            showModal("PROFILE", `
+                <div style="text-align:center">
+                    <div style="width:80px;height:80px;border-radius:50%;border:2px solid var(--neon);margin:0 auto;display:flex;justify-content:center;align-items:center;font-size:30px;background:#000; box-shadow: 0 0 15px var(--neon);">👤</div>
+                    <h2 style="font-family:'Teko';font-size:32px;color:var(--neon);margin-top:10px;text-shadow:0 0 10px rgba(0,243,255,0.5);">${u.name} ${getBadgeHtml(u.badge)}</h2>
+                    
+                    <div class="p-meta-row">
+                        <span style="color:#aaa;background:#222;padding:2px 5px;border-radius:3px;font-size:12px;">UID: ${u.ffID} <span class="copy-icon" onclick="copy('${u.ffID}')">❐</span></span>
+                        <span style="color:#aaa;background:#222;padding:2px 5px;border-radius:3px;font-size:12px;">IGN: <span style="color:var(--neon)">${u.ign||'---'}</span></span>
+                    </div>
+                    
+                    ${socHtml}
+
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:15px 0;">
+                        <div style="background:#1a1a1a; padding:5px; border-radius:4px;"><small style="color:#aaa">BALANCE</small><br><b style="color:gold">৳${formatMoney(u.balance || 0)}</b></div>
+                        <div style="background:#1a1a1a; padding:5px; border-radius:4px;"><small style="color:#aaa">MATCHES</small><br><b style="color:var(--neon)">${mCount}</b></div>
+                    </div>
+                    <div style="background:#1a1a1a;padding:10px;margin:15px 0;border-radius:6px;border:1px solid #333;font-style:italic;color:#ccc;word-wrap:break-word;">"${u.bio||'No bio'}"</div>
+                </div>`);
+        }
+
+        window.join = async (tid, fee) => { 
+            if(user.balance < fee) return toast("Insufficient Balance!");
+            if(!user.ign || user.ign.trim() === "") {
+                if(confirm("IGN not set! Go to Profile > Update to set your In-Game Name first.")) {
+                    tab('prof', document.querySelector('div[onclick*="prof"]'));
+                }
+                return;
+            }
+            if(!confirm(`Join Match for ৳${fee} with IGN: ${user.ign}?`)) return;
+
+            const u = {}; 
+            u[`users/${user.uid}/balance`] = user.balance - fee; 
+            u[`users/${user.uid}/registeredTournaments/${tid}`] = true; 
+            const currentMatches = (user.matchCount || 0) + 1;
+            u[`users/${user.uid}/matchCount`] = currentMatches;
+            u[`tournaments/${tid}/registeredUsers/${user.uid}`] = { name: user.name, ign: user.ign }; 
+
+            try { await update(ref(db), u); toast("Joined Successfully!"); } catch(e) { toast("Join Failed!"); } 
+        }
+
+        window.openWit = async () => { 
+            const snap = await get(ref(db, 'config/withdrawStatus')); 
+            if(snap.exists() && snap.val() === false) alert("উইথড্র সাময়িকভাবে বন্ধ আছে।"); 
+            else showModal("WITHDRAW", `<select id="wm"><option>Bkash</option><option>Nagad</option></select><input type="number" id="wa" placeholder="Amount (Min 100)"><input type="text" id="wn" placeholder="Your Number"><button class="btn btn-neon" onclick="sendReq('withdraw')">REQUEST</button>`); 
+        }
+
+        window.openRecharge = () => showModal("RECHARGE", `<div style="background:#111;padding:10px;margin-bottom:15px;border:1px solid #333;border-radius:4px;"><div style="display:flex;justify-content:space-between;margin-bottom:5px;"><span>Bkash: 01796325908</span><button class="btn-sm" onclick="copy('01796325908')">COPY</button></div><div style="display:flex;justify-content:space-between;"><span>Nagad: 01796325908</span><button class="btn-sm" onclick="copy('01796325908')">COPY</button></div></div><select id="dm"><option>Bkash</option><option>Nagad</option></select><input type="number" id="da" placeholder="Amount (Min 30)"><input type="text" id="dt" placeholder="Trx ID"><button class="btn btn-neon" onclick="sendReq('deposit')">SUBMIT</button>`);
+
+        window.sendReq = async (t) => { 
+            const a = parseInt(document.getElementById(t==='deposit'?'da':'wa').value); 
+            const d = t==='deposit'?document.getElementById('dt').value:document.getElementById('wn').value; 
+            if(!a || !d) return toast("Fill all!"); 
+            if(t === 'deposit' && a < 30) return toast("Min Recharge 30৳");
+            if(t === 'withdraw' && a < 100) return toast("Min Withdraw 100৳");
+            if(t === 'withdraw' && user.balance < a) return toast("Low Balance!");
+            
+            const k = push(ref(db,'requests')).key; 
+            const dt = {uid:user.uid, userName:user.name, amount:a, type:t, details:d, method:document.getElementById(t==='deposit'?'dm':'wm').value, status:'pending', time:Date.now()}; 
+            const u = {}; 
+            u[`requests/${k}`]=dt; 
+            if(t==='withdraw') u[`users/${user.uid}/balance`] = user.balance - a; 
+            await update(ref(db), u); closeModal(); toast("Request Sent!"); 
+        }
+
+        window.openSupport = () => showModal("SUPPORT", `<textarea id="sm" rows="4" placeholder="Message..."></textarea><button class="btn btn-neon" onclick="sendMsg()">SEND</button>`);
+        window.sendMsg = async () => { const txt = document.getElementById('sm').value; if(!txt) return toast("Empty Message!"); await push(ref(db, 'support'), { uid: user.uid, name: user.name, message: txt, reply: "", time: Date.now() }); closeModal(); toast("Sent!"); }
+        window.openInbox = () => { onValue(query(ref(db, 'support'), orderByChild('uid'), equalTo(user.uid)), s => { let h = ''; s.forEach(c => { const m = c.val(); if(m.reply) h += `<div style="background:#1a1a1a;padding:10px;margin-bottom:10px;border-radius:4px;border-left:2px solid var(--neon);"><b>YOU:</b> ${m.message}<div style="color:var(--neon);margin-top:5px;font-style:italic;"><b>ADMIN:</b> ${m.reply}</div></div>`; }); showModal("INBOX", h || "<p style='text-align:center;color:#666'>Empty</p>"); }, {onlyOnce:true}); }
+        
+        window.openEditProf = () => showModal("EDIT PROFILE", `
+            <input id="en" value="${user.name}" placeholder="Enter Full Name (Required)">
+            <input id="eu" value="${user.ffID}" placeholder="Enter Free Fire UID">
+            <input id="eign" value="${user.ign||''}" placeholder="In-Game Name (IGN)">
+            <input id="eyt" value="${user.ytLink||''}" placeholder="YouTube Channel Link (Optional)">
+            <input id="efb" value="${user.fbLink||''}" placeholder="Facebook Profile Link (Optional)">
+            <input id="ett" value="${user.ttLink||''}" placeholder="TikTok Profile Link (Optional)">
+            <textarea id="eb" maxlength="150" placeholder="Enter Bio (Max 150 chars)...">${user.bio||''}</textarea>
+            <button class="btn btn-neon" id="save-prof-btn" onclick="saveProf()">SAVE CHANGES</button>
+        `);
+        
+        window.saveProf = async () => { 
+            const btn = document.getElementById('save-prof-btn');
+            const newName = document.getElementById('en').value.trim();
+            // IGN SPACE REMOVER
+            const ign = document.getElementById('eign').value.replace(/\s/g, ''); 
+            
+            const yt = document.getElementById('eyt').value.trim();
+            const fb = document.getElementById('efb').value.trim();
+            const tt = document.getElementById('ett').value.trim();
+            
+            if(!newName) return toast("Name cannot be empty!");
+            if(!isValidName(newName)) return toast("Use only English letters/numbers in Name!");
+            if(!ign) return toast("IGN is required to join matches!");
+
+            const ytReg = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/;
+            const fbReg = /^(https?:\/\/)?(www\.)?(facebook\.com|fb\.com)\/.+$/;
+            const ttReg = /^(https?:\/\/)?(www\.)?tiktok\.com\/.+$/;
+            
+            if(yt && !ytReg.test(yt)) return toast("Invalid YouTube URL!");
+            if(fb && !fbReg.test(fb)) return toast("Invalid Facebook URL!");
+            if(tt && !ttReg.test(tt)) return toast("Invalid TikTok URL!");
+
+            btn.disabled = true;
+            btn.innerText = "CHECKING...";
+
+            if(newName.toLowerCase() !== user.name.toLowerCase()) {
+                const nameCheck = await get(query(ref(db, 'users'), orderByChild('name_lowercase'), equalTo(newName.toLowerCase())));
+                if(nameCheck.exists()) {
+                    btn.disabled = false;
+                    btn.innerText = "SAVE CHANGES";
+                    return toast("Name already taken! Try another.");
+                }
+            }
+
+            await update(ref(db, `users/${user.uid}`), {
+                name: newName, 
+                name_lowercase: newName.toLowerCase(), 
+                ffID: document.getElementById('eu').value, 
+                ign: ign,
+                ytLink: yt,
+                fbLink: fb,
+                ttLink: tt,
+                bio: document.getElementById('eb').value
+            }); 
+            closeModal(); 
+            toast("Profile Updated!"); 
+        }
+        
+        window.reg = async () => {
+            const name = document.getElementById('rn').value.trim(); 
+            const email = document.getElementById('re').value.trim(); 
+            const pass = document.getElementById('rp').value.trim(); 
+            const ffID = document.getElementById('rf').value.trim(); 
+            const refCode = document.getElementById('rr').value.trim(); 
+            const btn = document.getElementById('reg-btn');
+            
+            if(!name || !email || !pass || !ffID) return toast("Fill all!"); 
+            if(!isValidName(name)) return toast("Use only English letters/numbers in Name!");
+
+            btn.disabled = true;
+            
+            try {
+                const nameCheck = await get(query(ref(db, 'users'), orderByChild('name_lowercase'), equalTo(name.toLowerCase())));
+                if(nameCheck.exists()) { btn.disabled = false; return toast("Name taken!"); }
+                
+                const cred = await createUserWithEmailAndPassword(auth, email, pass); await sendEmailVerification(cred.user);
+                
+                let bonus = 0;
+                let referredBy = "";
+                if(refCode) {
+                    const snap = await get(query(ref(db, 'users'), orderByChild('name'), equalTo(refCode)));
+                    if(snap.exists()) { bonus = 5; referredBy = refCode; }
+                }
+
+                await update(ref(db, `users/${cred.user.uid}`), { 
+                    name, 
+                    name_lowercase: name.toLowerCase(), 
+                    email, 
+                    ffID, 
+                    balance: bonus, 
+                    matchCount: 0, 
+                    referredBy: referredBy, 
+                    createdAt: Date.now() 
+                });
+                alert("Account Created! Check Email for verification."); location.reload();
+            } catch(e) { btn.disabled = false; toast(e.message); }
+        }
+
+        window.copy = (t) => { navigator.clipboard.writeText(t); toast("COPIED!"); }
+        window.copyUID = () => { navigator.clipboard.writeText(user.ffID); toast("UID COPIED!"); }
+        window.showNotif = () => showModal("ROOM ACCESS", notifHtml || "No active rooms for you.");
+        
+        window.showModal = (t,b) => { 
+            const box = document.getElementById('modal-content-box');
+            document.getElementById('m-title').innerText=t; 
+            document.getElementById('m-body').innerHTML=b; 
+            document.getElementById('modal').style.display='flex';
+        }
+
+        window.closeModal = () => document.getElementById('modal').style.display='none';
+        window.login = async () => { try{await signInWithEmailAndPassword(auth, document.getElementById('le').value, document.getElementById('lp').value)}catch(e){toast("Login Failed")} }
+        window.logout = async () => { await signOut(auth); location.reload(); }
+        window.toggleAuth = () => { document.getElementById('login-f').classList.toggle('hidden'); document.getElementById('reg-f').classList.toggle('hidden'); }
+        
+        window.tab = (id, el) => { 
+            // Caching check: If switching to 'prof' or 'wallet' and user data exists, no loader needed.
+            ['home','search','wallet','prof'].forEach(i=>document.getElementById('pg-'+i).classList.add('hidden')); 
+            document.getElementById('pg-'+id).classList.remove('hidden'); 
+            document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active')); 
+            el.classList.add('active'); 
+            
+            if(id === 'search') {
+                document.getElementById('s-input').value = ''; 
+                document.getElementById('search-res').innerHTML = '';
+                document.getElementById('search-res').classList.add('hidden');
+                document.getElementById('lb-container').classList.remove('hidden');
+            }
+        }
+        
+        window.toast = (m) => { const t=document.getElementById('toast'); t.innerText=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2000); }
+        window.openHelp = () => showModal("HELP", "Submit correct TRX ID. Recharge manual takes 30-60 mins.");
+    </script>
+</body>
+</html>
