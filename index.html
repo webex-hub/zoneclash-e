@@ -896,15 +896,38 @@
         }
 
         window.join = async (tid, fee) => { 
+            // 1. Time Validation Check
+            const t = rawTournaments[tid];
+            if (t) {
+                const matchTime = parseMatchTime(t.date, t.time);
+                if (matchTime && Date.now() >= matchTime) {
+                    // বাটন ডিজেবল করার পাশাপাশি এই চেকটি হ্যাকিং আটকাবে
+                    const btn = document.getElementById(`btn-${tid}`);
+                    if(btn) {
+                        btn.disabled = true;
+                        btn.innerText = "STARTED";
+                        btn.classList.add('btn-dis');
+                        btn.classList.remove('btn-neon');
+                    }
+                    return toast("MATCH STARTED! JOINING CLOSED.");
+                }
+            }
+
+            // 2. Balance Check
             if(user.balance < fee) return toast("Insufficient Balance!");
+
+            // 3. IGN Check
             if(!user.ign || user.ign.trim() === "") {
                 if(confirm("IGN not set! Go to Profile > Update to set your In-Game Name first.")) {
                     tab('prof', document.querySelector('div[onclick*="prof"]'));
                 }
                 return;
             }
-            if(!confirm(`Join Match for ৳${fee} with IGN: ${user.ign}?`)) return;
 
+            // 4. Confirmation
+            if(!confirm(`Join Match for ৳${formatMoney(fee)} with IGN: ${user.ign}?`)) return;
+
+            // 5. Database Update
             const u = {}; 
             u[`users/${user.uid}/balance`] = user.balance - fee; 
             u[`users/${user.uid}/registeredTournaments/${tid}`] = true; 
@@ -912,7 +935,14 @@
             u[`users/${user.uid}/matchCount`] = currentMatches;
             u[`tournaments/${tid}/registeredUsers/${user.uid}`] = { name: user.name, ign: user.ign }; 
 
-            try { await update(ref(db), u); toast("Joined Successfully!"); } catch(e) { toast("Join Failed!"); } 
+            try { 
+                await update(ref(db), u); 
+                toast("Joined Successfully!"); 
+                // UI Update immediately for better UX
+                document.getElementById('bal').innerText = formatMoney(user.balance - fee);
+            } catch(e) { 
+                toast("Join Failed!"); 
+            } 
         }
 
         window.openWit = async () => { 
